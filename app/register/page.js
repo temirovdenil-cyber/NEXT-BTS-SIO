@@ -1,6 +1,4 @@
 'use client'
-import Image from 'next/image'
-import Link from 'next/link'
 import { useState } from 'react'
 import { Register } from '@/services/register'
 
@@ -27,49 +25,69 @@ export default function RegisterPage() {
       console.log('Erreur réseau', err)
     }
   }
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#0d0d2b] via-[#1a1a4e] to-[#0d0d2b] flex flex-col">
-      <div className="flex items-center justify-between px-6 py-4 border-b border-white/10">
+    <div className="min-h-screen bg-white flex flex-col">
+
+      {/* Header */}
+      <header className="flex items-center justify-between px-8 py-4 border-b border-gray-100 shadow-sm">
         <div className="flex items-center gap-2">
-          <div className="w-8 h-8 bg-indigo-500 rounded-full"></div>
-          <span className="text-white font-bold text-lg">MY DIGITAL SCHOOL</span>
+          <div className="w-8 h-8 bg-purple-700 rounded-full flex items-center justify-center">
+            <span className="text-white text-xs font-bold">M</span>
+          </div>
+          <span className="font-bold text-gray-800 text-lg">MY DIGITAL SCHOOL</span>
         </div>
-        <button onClick={() => window.history.back()} className="text-white/70 hover:text-white text-sm">← Retour</button>
+        <a href="/" className="text-purple-700 hover:text-purple-900 text-sm font-medium">← Retour à l'accueil</a>
+      </header>
+
+      {/* Bande cyan */}
+      <div className="bg-cyan-400 py-2 px-8 text-center text-white text-sm font-medium">
+        20 formations • 100% certifiées par l'état • 17 campus • Cours en présentiel
       </div>
+
       <div className="flex flex-col md:flex-row flex-1">
-        <div className="hidden md:flex w-1/2 items-center justify-center p-12">
-          <Image src="/image-register.png" alt="register" width={520} height={400} className="max-w-md w-full object-contain" />
+        {/* Colonne gauche - info */}
+        <div className="hidden md:flex w-1/2 bg-gradient-to-b from-purple-50 to-cyan-50 flex-col items-center justify-center p-12 gap-8">
+          <img src="/image-register.png" alt="register" className="max-w-sm w-full object-contain" />
+          <div className="text-center">
+            <h2 className="text-2xl font-bold text-gray-800 mb-2">Rejoins la communauté</h2>
+            <p className="text-gray-500 text-sm">Plus de 10 000 étudiants nous font confiance</p>
+          </div>
         </div>
-        <div className="w-full md:w-1/2 flex flex-col justify-center px-6 md:px-16 py-8">
-          <h1 className="text-4xl md:text-5xl font-bold text-white mb-1">Créer votre compte</h1>
-          <p className="text-gray-400 mb-8 text-sm">Tu cherches une école du digital en France ? Découvre les formations MyDigitalSchool dans nos 17 campus</p>
+
+        {/* Formulaire droite */}
+        <div className="w-full md:w-1/2 flex flex-col justify-center px-8 md:px-16 py-12">
+          <h1 className="text-4xl font-bold text-gray-900 mb-1">Créer votre compte</h1>
+          <p className="text-gray-500 mb-8 text-sm">Tu cherches une école du digital en France ? Découvre les formations MyDigitalSchool dans nos 17 campus</p>
+
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="block text-gray-300 text-sm mb-1">Nom complet</label>
-              <input type="text" placeholder="Entrez votre nom" onChange={(e) => setName(e.target.value)} className="w-full bg-white/5 text-white px-4 py-3 rounded-xl border border-white/10 focus:outline-none focus:border-indigo-400 placeholder:text-gray-500" />
+              <label className="block text-gray-700 text-sm font-medium mb-1">Nom complet</label>
+              <input type="text" placeholder="Entrez votre nom" onChange={(e) => setName(e.target.value)} className="w-full bg-gray-50 text-gray-800 px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-100 placeholder:text-gray-400" />
             </div>
             <div>
-              <label className="block text-gray-300 text-sm mb-1">Email</label>
-              <input type="email" placeholder="Entrez votre mail" onChange={(e) => setEmail(e.target.value)} className="w-full bg-white/5 text-white px-4 py-3 rounded-xl border border-white/10 focus:outline-none focus:border-indigo-400 placeholder:text-gray-500" />
+              <label className="block text-gray-700 text-sm font-medium mb-1">Email</label>
+              <input type="email" placeholder="Entrez votre mail" onChange={(e) => setEmail(e.target.value)} className="w-full bg-gray-50 text-gray-800 px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-100 placeholder:text-gray-400" />
             </div>
             <div>
-              <label className="block text-gray-300 text-sm mb-1">Mot de passe</label>
+              <label className="block text-gray-700 text-sm font-medium mb-1">Mot de passe</label>
               <div className="relative">
-                <input type={showPassword ? 'text' : 'password'} placeholder="Créez un mot de passe" onChange={(e) => setPassword(e.target.value)} className="w-full bg-white/5 text-white px-4 py-3 rounded-xl border border-white/10 focus:outline-none focus:border-indigo-400 placeholder:text-gray-500" />
-                <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-3 text-gray-400 hover:text-white">👁</button>
+                <input type={showPassword ? 'text' : 'password'} placeholder="Créez un mot de passe" onChange={(e) => setPassword(e.target.value)} className="w-full bg-gray-50 text-gray-800 px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-100 placeholder:text-gray-400" />
+                <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-3 text-gray-400 hover:text-gray-600">👁</button>
               </div>
             </div>
             <div>
-              <label className="block text-gray-300 text-sm mb-1">Confirmer le mot de passe</label>
+              <label className="block text-gray-700 text-sm font-medium mb-1">Confirmer le mot de passe</label>
               <div className="relative">
-                <input type={showConfirm ? 'text' : 'password'} placeholder="Confirmez votre mot de passe" onChange={(e) => setConfirmPassword(e.target.value)} className="w-full bg-white/5 text-white px-4 py-3 rounded-xl border border-white/10 focus:outline-none focus:border-indigo-400 placeholder:text-gray-500" />
-                <button type="button" onClick={() => setShowConfirm(!showConfirm)} className="absolute right-3 top-3 text-gray-400 hover:text-white">👁</button>
+                <input type={showConfirm ? 'text' : 'password'} placeholder="Confirmez votre mot de passe" onChange={(e) => setConfirmPassword(e.target.value)} className="w-full bg-gray-50 text-gray-800 px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-100 placeholder:text-gray-400" />
+                <button type="button" onClick={() => setShowConfirm(!showConfirm)} className="absolute right-3 top-3 text-gray-400 hover:text-gray-600">👁</button>
               </div>
             </div>
-            <button type="submit" className="w-full bg-indigo-500 hover:bg-indigo-400 text-white font-semibold py-3 rounded-xl transition-colors">S'inscrire</button>
+            <button type="submit" className="w-full bg-purple-700 hover:bg-purple-800 text-white font-semibold py-3 rounded-xl transition-colors shadow-md">S'inscrire</button>
           </form>
-          <p className="text-gray-400 text-center mt-6 text-sm">
-            Déjà un compte ? <Link href="/login" className="text-indigo-400 hover:text-indigo-300 font-medium">Se connecter</Link>
+
+          <p className="text-gray-500 text-center mt-6 text-sm">
+            Déjà un compte ? <a href="/login" className="text-purple-600 hover:text-purple-800 font-semibold">Se connecter</a>
           </p>
         </div>
       </div>
