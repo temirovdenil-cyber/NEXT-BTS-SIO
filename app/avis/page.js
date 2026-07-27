@@ -10,15 +10,19 @@ export default function Avis() {
   const [rating, setRating] = useState(5)
   const [page, setPage] = useState('liste')
   const [menuOpen, setMenuOpen] = useState(false)
-  const [connecte, setConnecte] = useState(() => Boolean(localStorage.getItem('token')))
+  const [connecte, setConnecte] = useState(false)
   const [avisAModifier, setAvisAModifier] = useState(null)
+  
+useEffect(() => {
+  const token = localStorage.getItem('token')
+  setConnecte(Boolean(token))
 
-  useEffect(() => {
-    fetch('http://localhost:5000/avis')
-      .then(res => res.json())
-      .then(data => setAvis(data.reviews || []))
-      .catch(err => console.error('Erreur:', err))
-  }, [])
+  fetch('http://localhost:5000/avis')
+    .then(res => res.json())
+    .then(data => setAvis(data.reviews || []))
+    .catch(err => console.error('Erreur:', err))
+}, [])
+
   const handleSubmit = async (e) => {
     e.preventDefault()
     const token = localStorage.getItem('token')
