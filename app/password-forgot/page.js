@@ -1,82 +1,161 @@
-'use client'
-import { useState } from 'react'
+"use client";
 
-export default function ForgotPassword() {
-  const [email, setEmail] = useState('')
-  const [envoye, setEnvoye] = useState(false)
+import Link from "next/link";
+import { useState } from "react";
 
-  const handleSubmit = async (e) => {
-    e.preventDefault()
+export default function ForgotPasswordPage() {
+  const [email, setEmail] = useState("");
+  const [envoye, setEnvoye] = useState(false);
+  const [message, setMessage] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+    setLoading(true);
+    setMessage("");
+
     try {
-      await fetch(`${process.env.NEXT_PUBLIC_API_URL}/forgot-password`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email })
-      })
-      setEnvoye(true)
-    } catch (err) {
-      console.error('Erreur:', err)
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/forgot-password`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            email,
+          }),
+        }
+      );
+
+      if (!response.ok) {
+        const result = await response.json();
+
+        setMessage(
+          result.message || "Impossible d’envoyer le lien de réinitialisation."
+        );
+
+        return;
+      }
+
+      setEnvoye(true);
+    } catch {
+      setMessage("Une erreur réseau est survenue. Veuillez réessayer.");
+    } finally {
+      setLoading(false);
     }
-  }
+  };
 
   return (
-    <div className="min-h-screen bg-white flex flex-col">
+    <section className="min-h-[calc(100vh-80px)] bg-slate-50">
+      <div className="page-container grid min-h-[calc(100vh-80px)] items-center gap-12 py-14 lg:grid-cols-2">
+        <div className="hidden lg:block">
+          <div className="rounded-[36px] bg-slate-950 p-12 text-white">
+            <p className="text-sm font-black uppercase tracking-[0.2em] text-cyan-300">
+              Sécurité du compte
+            </p>
 
-      {/* Header */}
-      <header className="flex items-center justify-between px-8 py-4 border-b border-gray-100 shadow-sm">
-        <div className="flex items-center gap-2">
-          <div className="w-8 h-8 bg-purple-700 rounded-full flex items-center justify-center">
-            <span className="text-white text-xs font-bold">M</span>
+            <h1 className="mt-6 text-5xl font-black leading-tight tracking-tight">
+              Récupérez rapidement l’accès à votre compte.
+            </h1>
+
+            <p className="mt-6 max-w-lg text-lg leading-8 text-slate-300">
+              Entrez votre adresse email et nous vous enverrons un lien pour
+              choisir un nouveau mot de passe.
+            </p>
+
+            <img
+              src="/image-forgot.png"
+              alt="Illustration de récupération du mot de passe"
+              className="mx-auto mt-10 max-h-80 w-full object-contain"
+            />
           </div>
-          <span className="font-bold text-gray-800 text-lg">MY DIGITAL SCHOOL</span>
-        </div>
-        <a href="/" className="text-purple-700 hover:text-purple-900 text-sm font-medium">← Retour à l'accueil</a>
-      </header>
-
-      {/* Bande cyan */}
-      <div className="bg-cyan-400 py-2 px-8 text-center text-white text-sm font-medium">
-        20 formations • 100% certifiées par l'état • 17 campus
-      </div>
-
-      <div className="flex flex-col md:flex-row flex-1">
-        {/* Colonne gauche */}
-        <div className="hidden md:flex w-1/2 bg-gradient-to-b from-gray-900 to-gray-800 flex-col items-start justify-center p-16 gap-6">
-          <img src="/image-forgot.png" alt="forgot" className="max-w-xs w-full object-contain mb-4" />
-          <h2 className="text-4xl font-bold text-white">Mot de passe oublié</h2>
-          <p className="text-gray-300 text-sm leading-relaxed">Entrez votre mail et nous vous enverrons un lien pour réinitialiser votre mot de passe.</p>
-          <a href="/login" className="text-cyan-400 hover:text-cyan-300 text-sm font-medium">← Retour à la connexion</a>
         </div>
 
-        {/* Formulaire droite */}
-        <div className="w-full md:w-1/2 flex flex-col justify-center px-8 md:px-16 py-12">
-          <div className="md:hidden mb-6">
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">Mot de passe oublié</h1>
-            <p className="text-gray-500 text-sm">Entrez votre mail pour recevoir un lien de réinitialisation.</p>
-          </div>
-
-          <div className="bg-gray-50 rounded-2xl border border-gray-200 p-8">
-            {envoye ? (
-              <div className="text-center py-8">
-                <div className="text-5xl mb-4">✉️</div>
-                <h2 className="text-gray-900 font-bold text-xl mb-2">Email envoyé !</h2>
-                <p className="text-gray-500 text-sm mb-6">Vérifiez votre boite mail pour le lien de réinitialisation.</p>
-                <a href="/login" className="text-purple-600 hover:text-purple-800 font-medium text-sm">Retour à la connexion →</a>
+        <div className="mx-auto w-full max-w-lg rounded-[32px] border border-slate-200 bg-white p-7 shadow-xl shadow-slate-200/50 sm:p-10">
+          {envoye ? (
+            <div className="text-center">
+              <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-cyan-100 text-3xl">
+                ✉
               </div>
-            ) : (
-              <form onSubmit={handleSubmit} className="space-y-5">
+
+              <p className="section-label mt-7">Email envoyé</p>
+
+              <h2 className="mt-3 text-4xl font-black tracking-tight text-slate-950">
+                Vérifiez votre boîte mail.
+              </h2>
+
+              <p className="mt-4 leading-7 text-slate-500">
+                Un lien de réinitialisation a été envoyé à l’adresse{" "}
+                <span className="font-bold text-slate-800">{email}</span>.
+              </p>
+
+              <p className="mt-3 text-sm leading-6 text-slate-400">
+                Pensez également à vérifier vos courriers indésirables.
+              </p>
+
+              <Link href="/login" className="button-primary mt-8 w-full">
+                Retour à la connexion
+              </Link>
+            </div>
+          ) : (
+            <>
+              <p className="section-label">Mot de passe oublié</p>
+
+              <h2 className="mt-3 text-4xl font-black tracking-tight text-slate-950">
+                Réinitialisez votre mot de passe.
+              </h2>
+
+              <p className="mt-3 leading-7 text-slate-500">
+                Indiquez l’adresse email associée à votre compte.
+              </p>
+
+              {message && (
+                <div className="mt-6 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-semibold text-red-700">
+                  {message}
+                </div>
+              )}
+
+              <form onSubmit={handleSubmit} className="mt-9 space-y-6">
                 <div>
-                  <label className="block text-gray-700 text-sm font-medium mb-1">Email</label>
-                  <input type="email" placeholder="Entrez votre mail" onChange={(e) => setEmail(e.target.value)} className="w-full bg-white text-gray-800 px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-100 placeholder:text-gray-400" />
+                  <label htmlFor="email" className="form-label">
+                    Adresse email
+                  </label>
+
+                  <input
+                    id="email"
+                    type="email"
+                    value={email}
+                    required
+                    autoComplete="email"
+                    placeholder="prenom.nom@email.com"
+                    onChange={(event) => setEmail(event.target.value)}
+                    className="form-input"
+                  />
                 </div>
-                <button type="submit" className="w-full bg-purple-700 hover:bg-purple-800 text-white font-semibold py-3 rounded-xl transition-colors shadow-md">Envoyer le lien</button>
-                <div className="text-center">
-                  <a href="/login" className="text-purple-600 hover:text-purple-800 text-sm font-medium">Retour à la connexion</a>
-                </div>
+
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="button-primary w-full disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  {loading ? "Envoi en cours..." : "Envoyer le lien"}
+                </button>
               </form>
-            )}
-          </div>
+
+              <p className="mt-8 text-center text-sm text-slate-500">
+                Vous vous souvenez de votre mot de passe ?{" "}
+                <Link
+                  href="/login"
+                  className="font-bold text-violet-700 hover:text-violet-900"
+                >
+                  Se connecter
+                </Link>
+              </p>
+            </>
+          )}
         </div>
       </div>
-    </div>
-  )
+    </section>
+  );
 }
