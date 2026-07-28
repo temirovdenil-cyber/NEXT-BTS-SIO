@@ -1,93 +1,171 @@
-'use client'
-import { useState } from 'react'
-import { Login } from '@/services/login'
-import Toast from '@/components/toast'
+"use client";
+
+import Link from "next/link";
+import { useState } from "react";
+import Toast from "@/components/toast";
+import { Login } from "@/services/login";
 
 export default function LoginPage() {
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
-  const [showPassword, setShowPassword] = useState(false)
-  const [message, setMessage] = useState('')
-  const [error, setError] = useState(false)
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [message, setMessage] = useState("");
+  const [error, setError] = useState(false);
+  const [loading, setLoading] = useState(false);
 
-  const handleSubmit = async (e) => {
-    e.preventDefault()
-    setError(false)
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+    setLoading(true);
+    setError(false);
+
     try {
-      const { response, result } = await Login({ email, password })
+      const { response, result } = await Login({
+        email,
+        password,
+      });
+
       if (response.ok) {
-        localStorage.setItem('token', result.token)
-        document.location.href = '/avis'
-      } else {
-        setMessage(result.message || 'Identifiants incorrects.')
-        setError(true)
-        setTimeout(() => setError(false), 3000)
+        localStorage.setItem("token", result.token);
+        window.location.href = "/avis";
+        return;
       }
-    } catch (err) {
-      setMessage('Erreur réseau, veuillez réessayer.')
-      setError(true)
-      setTimeout(() => setError(false), 3000)
+
+      setMessage(result.message || "Identifiants incorrects.");
+      setError(true);
+    } catch {
+      setMessage("Erreur réseau, veuillez réessayer.");
+      setError(true);
+    } finally {
+      setLoading(false);
     }
-  }
+  };
 
   return (
-    <div className="min-h-screen bg-white flex flex-col">
+    <section className="min-h-[calc(100vh-80px)] bg-slate-50">
       {message && error && <Toast message={message} />}
 
-      {/* Header */}
-      <header className="flex items-center justify-between px-8 py-4 border-b border-gray-100 shadow-sm">
-        <div className="flex items-center gap-2">
-          <div className="w-8 h-8 bg-purple-700 rounded-full flex items-center justify-center">
-            <span className="text-white text-xs font-bold">M</span>
+      <div className="page-container grid min-h-[calc(100vh-80px)] items-center gap-12 py-14 lg:grid-cols-2">
+        <div className="hidden lg:block">
+          <div className="rounded-[36px] bg-violet-700 p-12 text-white">
+            <p className="text-sm font-bold uppercase tracking-[0.2em] text-cyan-300">
+              Espace étudiant
+            </p>
+
+            <h1 className="mt-6 text-5xl font-black leading-tight tracking-tight">
+              Retrouvez votre espace et vos avis.
+            </h1>
+
+            <p className="mt-6 max-w-lg text-lg leading-8 text-violet-100">
+              Connectez-vous pour publier, modifier et gérer vos expériences
+              partagées avec la communauté.
+            </p>
+
+            <img
+              src="/image-login.png"
+              alt="Illustration de connexion"
+              className="mx-auto mt-10 max-h-80 w-full object-contain"
+            />
           </div>
-          <span className="font-bold text-gray-800 text-lg">MY DIGITAL SCHOOL</span>
-        </div>
-        <a href="/" className="text-purple-700 hover:text-purple-900 text-sm font-medium">← Retour à l'accueil</a>
-      </header>
-
-      {/* Bande cyan */}
-      <div className="bg-cyan-400 py-2 px-8 text-center text-white text-sm font-medium">
-        Tu cherches une école du digital ? Découvre nos 20 formations dans 17 campus
-      </div>
-
-      <div className="flex flex-col md:flex-row flex-1">
-        {/* Image gauche */}
-        <div className="hidden md:flex w-1/2 bg-purple-50 items-center justify-center p-12">
-          <img src="/image-login.png" alt="login" className="max-w-md w-full object-contain" />
         </div>
 
-        {/* Formulaire droite */}
-        <div className="w-full md:w-1/2 flex flex-col justify-center px-8 md:px-16 py-12">
-          <h1 className="text-4xl font-bold text-gray-900 mb-1">Bienvenue !</h1>
-          <p className="text-cyan-500 font-medium mb-8">Connectez-vous pour continuer</p>
+        <div className="mx-auto w-full max-w-lg rounded-[32px] border border-slate-200 bg-white p-7 shadow-xl shadow-slate-200/50 sm:p-10">
+          <p className="section-label">Connexion</p>
 
-          <form onSubmit={handleSubmit} className="space-y-5">
+          <h2 className="mt-3 text-4xl font-black tracking-tight text-slate-950">
+            Bon retour parmi nous.
+          </h2>
+
+          <p className="mt-3 leading-7 text-slate-500">
+            Entrez vos identifiants pour accéder à votre compte.
+          </p>
+
+          <form onSubmit={handleSubmit} className="mt-9 space-y-6">
             <div>
-              <label className="block text-gray-700 text-sm font-medium mb-1">Email</label>
-              <input type="email" placeholder="Entrez votre mail" onChange={(e) => setEmail(e.target.value)} className="w-full bg-gray-50 text-gray-800 px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-100 placeholder:text-gray-400" />
+              <label htmlFor="email" className="form-label">
+                Adresse email
+              </label>
+
+              <input
+                id="email"
+                type="email"
+                value={email}
+                required
+                autoComplete="email"
+                placeholder="prenom.nom@email.com"
+                onChange={(event) => setEmail(event.target.value)}
+                className="form-input"
+              />
             </div>
+
             <div>
-              <label className="block text-gray-700 text-sm font-medium mb-1">Mot de passe</label>
+              <div className="flex items-center justify-between">
+                <label htmlFor="password" className="form-label">
+                  Mot de passe
+                </label>
+
+                <Link
+                  href="/password-forgot"
+                  className="text-sm font-semibold text-violet-700 hover:text-violet-900"
+                >
+                  Mot de passe oublié ?
+                </Link>
+              </div>
+
               <div className="relative">
-                <input type={showPassword ? 'text' : 'password'} placeholder="Entrez votre mot de passe" onChange={(e) => setPassword(e.target.value)} className="w-full bg-gray-50 text-gray-800 px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-100 placeholder:text-gray-400" />
-                <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-3 text-gray-400 hover:text-gray-600">👁</button>
+                <input
+                  id="password"
+                  type={showPassword ? "text" : "password"}
+                  value={password}
+                  required
+                  autoComplete="current-password"
+                  placeholder="Votre mot de passe"
+                  onChange={(event) => setPassword(event.target.value)}
+                  className="form-input pr-14"
+                />
+
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  aria-label={
+                    showPassword
+                      ? "Masquer le mot de passe"
+                      : "Afficher le mot de passe"
+                  }
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-sm font-bold text-slate-500 hover:text-violet-700"
+                >
+                  {showPassword ? "Masquer" : "Voir"}
+                </button>
               </div>
             </div>
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <input type="checkbox" id="remember" className="w-4 h-4 accent-purple-600" />
-                <label htmlFor="remember" className="text-gray-600 text-sm">Se souvenir de moi</label>
-              </div>
-              <a href="/password-forgot" className="text-purple-600 hover:text-purple-800 text-sm font-medium">Mot de passe oublié ?</a>
-            </div>
-            <button type="submit" className="w-full bg-purple-700 hover:bg-purple-800 text-white font-semibold py-3 rounded-xl transition-colors shadow-md">Se connecter</button>
+
+            <label className="flex items-center gap-3 text-sm text-slate-600">
+              <input
+                type="checkbox"
+                className="h-4 w-4 rounded accent-violet-700"
+              />
+              Se souvenir de moi
+            </label>
+
+            <button
+              type="submit"
+              disabled={loading}
+              className="button-primary w-full disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              {loading ? "Connexion..." : "Se connecter"}
+            </button>
           </form>
 
-          <p className="text-gray-500 text-center mt-6 text-sm">
-            Pas de compte ? <a href="/register" className="text-purple-600 hover:text-purple-800 font-semibold">S'inscrire</a>
+          <p className="mt-8 text-center text-sm text-slate-500">
+            Vous n’avez pas encore de compte ?{" "}
+            <Link
+              href="/register"
+              className="font-bold text-violet-700 hover:text-violet-900"
+            >
+              S’inscrire
+            </Link>
           </p>
         </div>
       </div>
-    </div>
-  )
+    </section>
+  );
 }

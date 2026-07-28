@@ -1,89 +1,205 @@
-'use client'
-import { useState } from 'react'
-import { Register } from '@/services/register'
+"use client";
+
+import Link from "next/link";
+import { useState } from "react";
+import { Register } from "@/services/register";
 
 export default function RegisterPage() {
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
-  const [confirmPassword, setConfirmPassword] = useState('')
-  const [name, setName] = useState('')
-  const [showPassword, setShowPassword] = useState(false)
-  const [showConfirm, setShowConfirm] = useState(false)
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
+  const [message, setMessage] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  const handleSubmit = async (e) => {
-    e.preventDefault()
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+    setMessage("");
+
     if (password !== confirmPassword) {
-      alert('Les mots de passe ne correspondent pas')
-      return
+      setMessage("Les mots de passe ne correspondent pas.");
+      return;
     }
+
+    setLoading(true);
+
     try {
-      const { response } = await Register({ username: name, email, password })
+      const { response, result } = await Register({
+        username: name,
+        email,
+        password,
+      });
+
       if (response.ok) {
-        document.location.href = '/login'
+        window.location.href = "/login";
+        return;
       }
-    } catch (err) {
-      console.log('Erreur réseau', err)
+
+      setMessage(result?.message || "Impossible de créer le compte.");
+    } catch {
+      setMessage("Erreur réseau, veuillez réessayer.");
+    } finally {
+      setLoading(false);
     }
-  }
+  };
 
   return (
-    <div className="min-h-screen bg-white flex flex-col">
+    <section className="min-h-[calc(100vh-80px)] bg-slate-50">
+      <div className="page-container grid min-h-[calc(100vh-80px)] items-center gap-12 py-14 lg:grid-cols-2">
+        <div className="mx-auto w-full max-w-lg rounded-[32px] border border-slate-200 bg-white p-7 shadow-xl shadow-slate-200/50 sm:p-10">
+          <p className="section-label">Inscription</p>
 
-      <header className="flex items-center justify-between px-8 py-4 border-b border-gray-100 shadow-sm">
-        <div className="flex items-center gap-2">
-          <div className="w-8 h-8 bg-purple-700 rounded-full flex items-center justify-center">
-            <span className="text-white text-xs font-bold">M</span>
-          </div>
-          <span className="font-bold text-gray-800 text-lg">MY DIGITAL SCHOOL</span>
-        </div>
-        <a href="/" className="text-purple-700 hover:text-purple-900 text-sm font-medium">← Retour à l'accueil</a>
-      </header>
-      <div className="bg-cyan-400 py-2 px-8 text-center text-white text-sm font-medium">
-        20 formations • 100% certifiées par l'état • 17 campus • Cours en présentiel
-      </div>
-      <div className="flex flex-col md:flex-row flex-1">
-        <div className="hidden md:flex w-1/2 bg-gradient-to-b from-purple-50 to-cyan-50 flex-col items-center justify-center p-12 gap-8">
-          <img src="/image-register.png" alt="register" className="max-w-sm w-full object-contain" />
-          <div className="text-center">
-            <h2 className="text-2xl font-bold text-gray-800 mb-2">Rejoins la communauté</h2>
-            <p className="text-gray-500 text-sm">Plus de 10 000 étudiants nous font confiance</p>
-          </div>
-        </div>
-        <div className="w-full md:w-1/2 flex flex-col justify-center px-8 md:px-16 py-12">
-          <h1 className="text-4xl font-bold text-gray-900 mb-1">Créer votre compte</h1>
-          <p className="text-gray-500 mb-8 text-sm">Tu cherches une école du digital en France ? Découvre les formations MyDigitalSchool dans nos 17 campus</p>
+          <h1 className="mt-3 text-4xl font-black tracking-tight text-slate-950">
+            Créez votre espace étudiant.
+          </h1>
 
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <label className="block text-gray-700 text-sm font-medium mb-1">Nom complet</label>
-              <input type="text" placeholder="Entrez votre nom" onChange={(e) => setName(e.target.value)} className="w-full bg-gray-50 text-gray-800 px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-100 placeholder:text-gray-400" />
+          <p className="mt-3 leading-7 text-slate-500">
+            Rejoignez la plateforme pour publier et gérer vos avis.
+          </p>
+
+          {message && (
+            <div className="mt-6 rounded-2xl bg-red-50 px-4 py-3 text-sm font-medium text-red-700">
+              {message}
             </div>
+          )}
+
+          <form onSubmit={handleSubmit} className="mt-9 space-y-5">
             <div>
-              <label className="block text-gray-700 text-sm font-medium mb-1">Email</label>
-              <input type="email" placeholder="Entrez votre mail" onChange={(e) => setEmail(e.target.value)} className="w-full bg-gray-50 text-gray-800 px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-100 placeholder:text-gray-400" />
+              <label htmlFor="name" className="form-label">
+                Nom complet
+              </label>
+
+              <input
+                id="name"
+                type="text"
+                value={name}
+                required
+                autoComplete="name"
+                placeholder="Votre nom complet"
+                onChange={(event) => setName(event.target.value)}
+                className="form-input"
+              />
             </div>
+
             <div>
-              <label className="block text-gray-700 text-sm font-medium mb-1">Mot de passe</label>
+              <label htmlFor="email" className="form-label">
+                Adresse email
+              </label>
+
+              <input
+                id="email"
+                type="email"
+                value={email}
+                required
+                autoComplete="email"
+                placeholder="prenom.nom@email.com"
+                onChange={(event) => setEmail(event.target.value)}
+                className="form-input"
+              />
+            </div>
+
+            <div>
+              <label htmlFor="password" className="form-label">
+                Mot de passe
+              </label>
+
               <div className="relative">
-                <input type={showPassword ? 'text' : 'password'} placeholder="Créez un mot de passe" onChange={(e) => setPassword(e.target.value)} className="w-full bg-gray-50 text-gray-800 px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-100 placeholder:text-gray-400" />
-                <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-3 text-gray-400 hover:text-gray-600">👁</button>
+                <input
+                  id="password"
+                  type={showPassword ? "text" : "password"}
+                  value={password}
+                  required
+                  minLength={6}
+                  autoComplete="new-password"
+                  placeholder="Au moins 6 caractères"
+                  onChange={(event) => setPassword(event.target.value)}
+                  className="form-input pr-14"
+                />
+
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-sm font-bold text-slate-500 hover:text-violet-700"
+                >
+                  {showPassword ? "Masquer" : "Voir"}
+                </button>
               </div>
             </div>
+
             <div>
-              <label className="block text-gray-700 text-sm font-medium mb-1">Confirmer le mot de passe</label>
+              <label htmlFor="confirmPassword" className="form-label">
+                Confirmation du mot de passe
+              </label>
+
               <div className="relative">
-                <input type={showConfirm ? 'text' : 'password'} placeholder="Confirmez votre mot de passe" onChange={(e) => setConfirmPassword(e.target.value)} className="w-full bg-gray-50 text-gray-800 px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-100 placeholder:text-gray-400" />
-                <button type="button" onClick={() => setShowConfirm(!showConfirm)} className="absolute right-3 top-3 text-gray-400 hover:text-gray-600">👁</button>
+                <input
+                  id="confirmPassword"
+                  type={showConfirm ? "text" : "password"}
+                  value={confirmPassword}
+                  required
+                  autoComplete="new-password"
+                  placeholder="Confirmez votre mot de passe"
+                  onChange={(event) =>
+                    setConfirmPassword(event.target.value)
+                  }
+                  className="form-input pr-14"
+                />
+
+                <button
+                  type="button"
+                  onClick={() => setShowConfirm(!showConfirm)}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-sm font-bold text-slate-500 hover:text-violet-700"
+                >
+                  {showConfirm ? "Masquer" : "Voir"}
+                </button>
               </div>
             </div>
-            <button type="submit" className="w-full bg-purple-700 hover:bg-purple-800 text-white font-semibold py-3 rounded-xl transition-colors shadow-md">S'inscrire</button>
+
+            <button
+              type="submit"
+              disabled={loading}
+              className="button-primary w-full disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              {loading ? "Création..." : "Créer mon compte"}
+            </button>
           </form>
 
-          <p className="text-gray-500 text-center mt-6 text-sm">
-            Déjà un compte ? <a href="/login" className="text-purple-600 hover:text-purple-800 font-semibold">Se connecter</a>
+          <p className="mt-8 text-center text-sm text-slate-500">
+            Vous possédez déjà un compte ?{" "}
+            <Link
+              href="/login"
+              className="font-bold text-violet-700 hover:text-violet-900"
+            >
+              Se connecter
+            </Link>
           </p>
         </div>
+
+        <div className="hidden lg:block">
+          <div className="rounded-[36px] bg-cyan-300 p-12">
+            <p className="text-sm font-bold uppercase tracking-[0.2em] text-violet-800">
+              Rejoignez la communauté
+            </p>
+
+            <h2 className="mt-6 text-5xl font-black leading-tight tracking-tight text-slate-950">
+              Votre avis peut aider les autres étudiants.
+            </h2>
+
+            <p className="mt-6 max-w-lg text-lg leading-8 text-slate-700">
+              Partagez votre expérience et consultez les retours des membres de
+              la communauté.
+            </p>
+
+            <img
+              src="/image-register.png"
+              alt="Illustration d'inscription"
+              className="mx-auto mt-10 max-h-80 w-full object-contain"
+            />
+          </div>
+        </div>
       </div>
-    </div>
-  )
+    </section>
+  );
 }

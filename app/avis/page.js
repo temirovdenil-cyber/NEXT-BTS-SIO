@@ -1,272 +1,604 @@
-'use client'
-import { useState, useEffect } from 'react'
+"use client";
 
-export default function Avis() {
-  const [avis, setAvis] = useState([])
-  const [titre, setTitre] = useState('')
-  const [description, setDescription] = useState('')
-  const [rating, setRating] = useState(5)
-  const [page, setPage] = useState('liste')
-  const [menuOpen, setMenuOpen] = useState(false)
-  const [connecte, setConnecte] = useState(false)
-  const [avisAModifier, setAvisAModifier] = useState(null)
+import Link from "next/link";
+import { useEffect, useState } from "react";
+
+const stars = [1, 2, 3, 4, 5];
+
+export default function AvisPage() {
+  const [avis, setAvis] = useState([]);
+  const [titre, setTitre] = useState("");
+  const [description, setDescription] = useState("");
+  const [rating, setRating] = useState(5);
+  const [page, setPage] = useState("liste");
+  const [connecte, setConnecte] = useState(false);
+  const [avisAModifier, setAvisAModifier] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [envoi, setEnvoi] = useState(false);
+  const [message, setMessage] = useState("");
 
   useEffect(() => {
-    const token = localStorage.getItem('token')
-    if (token) setConnecte(true)
-    fetch(`${process.env.NEXT_PUBLIC_API_URL}/avis`)
-      .then(res => res.json())
-      .then(data => setAvis(data.reviews || []))
-      .catch(err => console.error('Erreur:', err))
-  }, [])
+    setConnecte(Boolean(localStorage.getItem("token")));
+    chargerAvis();
+  }, []);
 
-  const rechargerAvis = async () => {
-    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/avis`)
-    const data = await res.json()
-    setAvis(data.reviews || [])
-  }
-
-  const handleSubmit = async (e) => {
-    e.preventDefault()
-    const token = localStorage.getItem('token')
+  const chargerAvis = async () => {
     try {
-      await fetch(`${process.env.NEXT_PUBLIC_API_URL}/add/avis`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-        body: JSON.stringify({ name: titre, date: new Date().toISOString(), rating, description })
-      })
-      await rechargerAvis()
-      setPage('liste')
-    } catch (err) {
-      console.error('Erreur:', err)
-    }
-  }
+      setLoading(true);
 
-  const handleModifier = async (e) => {
-    e.preventDefault()
-    const token = localStorage.getItem('token')
-    try {
-      await fetch(`${process.env.NEXT_PUBLIC_API_URL}/avis/${avisAModifier.id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-        body: JSON.stringify({ name: titre || avisAModifier.name, date: avisAModifier.date, rating: rating || avisAModifier.rating, description: description || avisAModifier.description })
-      })
-      await rechargerAvis()
-      setPage('liste')
-      setAvisAModifier(null)
-    } catch (err) {
-      console.error('Erreur:', err)
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/avis`
+      );
+
+      const data = await response.json();
+
+      setAvis(data.reviews || []);
+    } catch {
+      setMessage("Impossible de charger les avis.");
+    } finally {
+      setLoading(false);
     }
-  }
+  };
+
+  const resetForm = () => {
+    setTitre("");
+    setDescription("");
+    setRating(5);
+    setAvisAModifier(null);
+  };
+
+  const ouvrirFormulaire = () => {
+    resetForm();
+    setPage("deposer");
+    window.scrollTo({
+      top: 0,
+      behavior: "smooth",
+    });
+  };
+
+  const ouvrirModification = (avisSelectionne) => {
+    setAvisAModifier(avisSelectionne);
+    setTitre(avisSelectionne.name || "");
+    setDescription(avisSelectionne.description || "");
+    setRating(avisSelectionne.rating || 5);
+    setPage("modifier");
+
+    window.scrollTo({
+      top: 0,
+      behavior: "smooth",
+    });
+  };
+
+  const fermerFormulaire = () => {
+    resetForm();
+    setPage("liste");
+  };
+
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+
+    const token = localStorage.getItem("token");
+
+    if (!token) {
+      window.location.href = "/login";
+      return;
+    }
+
+    try {
+      setEnvoi(true);
+      setMessage("");
+
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/add/avis`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            name: titre,
+            date: new Date().toISOString(),
+            rating,
+            description,
+          }),
+        }
+      );
+
+      if (!response.ok) {
+        const result = await response.json();
+        setMessage(result.message || "Impossible de publier cet avis.");
+        return;
+      }
+
+      await chargerAvis();
+      resetForm();
+      setPage("liste");
+    } catch {
+      setMessage("Une erreur réseau est survenue.");
+    } finally {
+      setEnvoi(false);
+    }
+  };
+
+  const handleModifier = async (event) => {
+    event.preventDefault();
+
+    if (!avisAModifier) {
+      return;
+    }
+
+    const token = localStorage.getItem("token");
+
+    try {
+      setEnvoi(true);
+      setMessage("");
+
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/avis/${avisAModifier.id}`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            name: titre,
+            date: avisAModifier.date,
+            rating,
+            description,
+          }),
+        }
+      );
+
+      if (!response.ok) {
+        const result = await response.json();
+        setMessage(result.message || "Impossible de modifier cet avis.");
+        return;
+      }
+
+      await chargerAvis();
+      resetForm();
+      setPage("liste");
+    } catch {
+      setMessage("Une erreur réseau est survenue.");
+    } finally {
+      setEnvoi(false);
+    }
+  };
 
   const handleSupprimer = async (id) => {
-    if (!confirm('Supprimer cet avis ?')) return
-    const token = localStorage.getItem('token')
-    try {
-      await fetch(`${process.env.NEXT_PUBLIC_API_URL}/avis/${id}`, {
-        method: 'DELETE',
-        headers: { 'Authorization': `Bearer ${token}` }
-      })
-      setAvis(avis.filter(a => a.id !== id))
-    } catch (err) {
-      console.error('Erreur:', err)
+    const confirmation = window.confirm(
+      "Voulez-vous vraiment supprimer cet avis ?"
+    );
+
+    if (!confirmation) {
+      return;
     }
-  }
 
-  const handleDeconnexion = () => {
-    localStorage.removeItem('token')
-    setConnecte(false)
-    setPage('liste')
-  }
+    const token = localStorage.getItem("token");
 
-  const NavLinks = () => (
-    <>
-      <button onClick={() => { setPage('liste'); setMenuOpen(false) }} className={`flex items-center gap-3 w-full px-4 py-3 rounded-xl text-sm transition-colors ${page === 'liste' ? 'bg-purple-100 text-purple-700 font-medium' : 'text-gray-600 hover:bg-gray-100'}`}>🏠 Accueil</button>
-      <button onClick={() => { setPage('liste'); setMenuOpen(false) }} className="flex items-center gap-3 w-full px-4 py-3 rounded-xl text-sm text-gray-600 hover:bg-gray-100 transition-colors">📬 Tous les avis</button>
-      {connecte && (
-        <button onClick={() => { setPage('deposer'); setMenuOpen(false) }} className={`flex items-center gap-3 w-full px-4 py-3 rounded-xl text-sm transition-colors ${page === 'deposer' ? 'bg-purple-700 text-white font-medium' : 'text-gray-600 hover:bg-gray-100'}`}>✏️ Déposer un avis</button>
-      )}
-      {!connecte && (
-        <a href="/login" className="flex items-center gap-3 w-full px-4 py-3 rounded-xl text-sm bg-purple-700 text-white font-medium hover:bg-purple-800 transition-colors">🔑 Se connecter</a>
-      )}
-    </>
-  )
+    try {
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/avis/${id}`,
+        {
+          method: "DELETE",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (!response.ok) {
+        const result = await response.json();
+        setMessage(result.message || "Impossible de supprimer cet avis.");
+        return;
+      }
+
+      setAvis((avisActuels) =>
+        avisActuels.filter((avisItem) => avisItem.id !== id)
+      );
+    } catch {
+      setMessage("Une erreur réseau est survenue.");
+    }
+  };
+
+  const moyenne =
+    avis.length > 0
+      ? (
+          avis.reduce(
+            (total, avisItem) => total + Number(avisItem.rating || 0),
+            0
+          ) / avis.length
+        ).toFixed(1)
+      : "0.0";
 
   return (
-    <div className="min-h-screen bg-white flex flex-col md:flex-row">
+    <div className="min-h-screen bg-slate-50">
+      <section className="relative overflow-hidden bg-slate-950 py-20 text-white">
+        <div className="absolute -left-20 top-10 h-72 w-72 rounded-full bg-cyan-400/20 blur-3xl" />
+        <div className="absolute -right-20 bottom-0 h-80 w-80 rounded-full bg-violet-600/30 blur-3xl" />
 
-      {/* Sidebar desktop */}
-      <div className="hidden md:flex w-64 bg-gray-50 border-r border-gray-200 flex-col justify-between py-8 px-6">
-        <div>
-          <div className="flex items-center gap-2 mb-2">
-            <div className="w-8 h-8 bg-purple-700 rounded-full flex items-center justify-center">
-              <span className="text-white text-xs font-bold">M</span>
-            </div>
-            <span className="font-bold text-gray-800">MY DIGITAL SCHOOL</span>
-          </div>
-          <div className="h-1 bg-cyan-400 rounded-full mb-8"></div>
-          <nav className="space-y-1">
-            <NavLinks />
-          </nav>
-        </div>
-        <div>
-          {connecte ? (
+        <div className="page-container relative">
+          <div className="grid items-end gap-12 lg:grid-cols-[1fr_auto]">
             <div>
-              <div className="flex items-center gap-3 bg-white rounded-xl px-4 py-3 border border-gray-200 mb-3 shadow-sm">
-                <div className="w-9 h-9 bg-purple-100 rounded-full flex items-center justify-center text-purple-700 text-sm font-bold">👤</div>
-                <div>
-                  <div className="text-gray-800 text-sm font-medium">Mon profil</div>
-                  <div className="text-green-500 text-xs">● Connecté</div>
-                </div>
-              </div>
-              <button onClick={handleDeconnexion} className="w-full text-red-500 hover:text-red-700 text-sm text-center py-2">Se déconnecter</button>
-            </div>
-          ) : (
-            <a href="/login" className="w-full bg-purple-700 hover:bg-purple-800 text-white text-sm font-medium py-2 px-4 rounded-xl text-center block transition-colors">Se connecter</a>
-          )}
-        </div>
-      </div>
+              <p className="text-sm font-black uppercase tracking-[0.2em] text-cyan-300">
+                Avis étudiants
+              </p>
 
-      {/* Navbar mobile */}
-      <div className="md:hidden bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between shadow-sm">
-        <div className="flex items-center gap-2">
-          <div className="w-7 h-7 bg-purple-700 rounded-full flex items-center justify-center">
-            <span className="text-white text-xs font-bold">M</span>
-          </div>
-          <span className="font-bold text-gray-800 text-sm">MY DIGITAL SCHOOL</span>
-        </div>
-        <button onClick={() => setMenuOpen(!menuOpen)} className="text-gray-600 text-xl">☰</button>
-      </div>
+              <h1 className="mt-5 max-w-4xl text-5xl font-black leading-tight tracking-[-0.045em] sm:text-6xl">
+                Découvrez les expériences de la communauté.
+              </h1>
 
-      {menuOpen && (
-        <div className="md:hidden bg-gray-50 px-6 py-4 space-y-1 border-b border-gray-200">
-          <NavLinks />
-        </div>
-      )}
+              <p className="mt-6 max-w-2xl text-lg leading-8 text-slate-300">
+                Consultez les retours des étudiants et partagez votre propre
+                expérience avec les autres membres.
+              </p>
 
-      {/* Contenu principal */}
-      <div className="flex-1 flex flex-col">
-
-        {/* Bande cyan */}
-        <div className="bg-cyan-400 py-2 px-8 text-center text-white text-sm font-medium hidden md:block">
-          20 formations • 100% certifiées par l'état • 17 campus • Cours en présentiel
-        </div>
-
-        <div className="flex-1 p-6 md:p-10">
-
-          {/* Liste des avis */}
-          {page === 'liste' && (
-            <div>
-              <div className="flex items-center justify-between mb-1">
-                <h1 className="text-2xl md:text-3xl font-bold text-gray-900">Les avis</h1>
-                {connecte && (
-                  <button onClick={() => setPage('deposer')} className="bg-purple-700 hover:bg-purple-800 text-white text-sm font-medium py-2 px-4 rounded-xl transition-colors">+ Déposer un avis</button>
+              <div className="mt-9 flex flex-col gap-3 sm:flex-row">
+                {connecte ? (
+                  <button
+                    type="button"
+                    onClick={ouvrirFormulaire}
+                    className="button-primary"
+                  >
+                    Déposer un avis
+                    <span aria-hidden="true">+</span>
+                  </button>
+                ) : (
+                  <Link href="/login" className="button-primary">
+                    Se connecter pour publier
+                  </Link>
                 )}
-              </div>
-              <div className="h-1 w-16 bg-cyan-400 rounded-full mb-6"></div>
-              <p className="text-gray-500 text-sm mb-8">Découvrez les avis de nos étudiants</p>
 
-              {avis.length === 0 ? (
-                <div className="text-center py-16 bg-gray-50 rounded-2xl border border-gray-200">
-                  <div className="text-4xl mb-4">📭</div>
-                  <p className="text-gray-500 font-medium">Aucun avis pour le moment.</p>
-                  {connecte && (
-                    <button onClick={() => setPage('deposer')} className="mt-4 text-purple-600 hover:text-purple-800 text-sm font-medium">Soyez le premier à laisser un avis →</button>
-                  )}
-                </div>
-              ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {avis.map((a) => (
-                    <div key={a.id} className="bg-white border border-gray-200 rounded-2xl p-6 hover:border-purple-300 hover:shadow-md transition-all">
-                      <div className="flex items-center justify-between mb-3">
-                        <div className="flex items-center gap-2">
-                          <div className="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center text-purple-700 text-xs font-bold">{a.name?.[0]?.toUpperCase()}</div>
-                          <span className="font-semibold text-gray-800 text-sm">{a.name}</span>
-                        </div>
-                        <div className="flex gap-0.5">
-                          {[1,2,3,4,5].map(s => (
-                            <span key={s} className={s <= a.rating ? 'text-purple-500' : 'text-gray-300'}>★</span>
-                          ))}
-                        </div>
-                      </div>
-                      <p className="text-gray-600 text-sm leading-relaxed mb-4">{a.description}</p>
-                      {connecte && (
-                        <div className="flex gap-2 pt-3 border-t border-gray-100">
-                          <button onClick={() => { setAvisAModifier(a); setTitre(a.name); setDescription(a.description); setRating(a.rating); setPage('modifier') }} className="text-xs bg-purple-50 hover:bg-purple-100 text-purple-700 px-3 py-1.5 rounded-lg transition-colors font-medium">✏️ Modifier</button>
-                          <button onClick={() => handleSupprimer(a.id)} className="text-xs bg-red-50 hover:bg-red-100 text-red-600 px-3 py-1.5 rounded-lg transition-colors font-medium">🗑️ Supprimer</button>
-                        </div>
-                      )}
-                    </div>
-                  ))}
-                </div>
+                <button
+                  type="button"
+                  onClick={() =>
+                    document
+                      .getElementById("liste-avis")
+                      ?.scrollIntoView({ behavior: "smooth" })
+                  }
+                  className="inline-flex min-h-13 items-center justify-center rounded-full border border-white/20 px-7 py-3.5 font-bold text-white transition hover:bg-white/10"
+                >
+                  Voir tous les avis
+                </button>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-1">
+              <div className="rounded-3xl border border-white/10 bg-white/5 p-6 backdrop-blur-xl">
+                <p className="text-3xl font-black">{avis.length}</p>
+                <p className="mt-1 text-sm text-slate-300">
+                  Avis publiés
+                </p>
+              </div>
+
+              <div className="rounded-3xl border border-white/10 bg-white/5 p-6 backdrop-blur-xl">
+                <p className="text-3xl font-black">{moyenne} / 5</p>
+                <p className="mt-1 text-sm text-slate-300">
+                  Note moyenne
+                </p>
+              </div>
+
+              <div className="col-span-2 rounded-3xl bg-cyan-300 p-6 text-slate-950 sm:col-span-1">
+                <p className="text-3xl font-black">100 %</p>
+                <p className="mt-1 text-sm font-semibold">
+                  Expériences partagées
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="page-container py-16">
+        {message && (
+          <div className="mb-8 rounded-2xl border border-red-200 bg-red-50 px-5 py-4 text-sm font-semibold text-red-700">
+            {message}
+          </div>
+        )}
+
+        {page === "liste" && (
+          <div id="liste-avis">
+            <div className="flex flex-col justify-between gap-6 sm:flex-row sm:items-end">
+              <div>
+                <p className="section-label">Témoignages</p>
+
+                <h2 className="mt-3 text-4xl font-black tracking-tight text-slate-950 sm:text-5xl">
+                  Les derniers avis
+                </h2>
+
+                <p className="mt-4 max-w-2xl leading-7 text-slate-500">
+                  Parcourez les expériences publiées par les membres de la
+                  plateforme.
+                </p>
+              </div>
+
+              {connecte && (
+                <button
+                  type="button"
+                  onClick={ouvrirFormulaire}
+                  className="button-primary shrink-0"
+                >
+                  Ajouter un avis
+                </button>
               )}
             </div>
-          )}
 
-          {/* Déposer un avis */}
-          {page === 'deposer' && (
-            <div className="max-w-2xl">
-              <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-1">Laisser un avis</h1>
-              <div className="h-1 w-16 bg-cyan-400 rounded-full mb-6"></div>
-              <p className="text-gray-500 text-sm mb-8">Partagez votre expérience avec les autres.</p>
-              <form onSubmit={handleSubmit} className="space-y-5 bg-gray-50 rounded-2xl border border-gray-200 p-8">
-                <div>
-                  <label className="block text-gray-700 text-sm font-medium mb-1">Titre de l'avis</label>
-                  <input type="text" placeholder="Ex : service au top !" onChange={(e) => setTitre(e.target.value)} className="w-full bg-white text-gray-800 px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-100 placeholder:text-gray-400" />
+            {loading ? (
+              <div className="mt-12 grid gap-6 md:grid-cols-2 xl:grid-cols-3">
+                {[1, 2, 3].map((item) => (
+                  <div
+                    key={item}
+                    className="h-72 animate-pulse rounded-[28px] bg-slate-200"
+                  />
+                ))}
+              </div>
+            ) : avis.length === 0 ? (
+              <div className="mt-12 rounded-[32px] border border-slate-200 bg-white px-6 py-20 text-center shadow-sm">
+                <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-violet-100 text-3xl">
+                  ✦
                 </div>
-                <div>
-                  <label className="block text-gray-700 text-sm font-medium mb-1">Votre avis</label>
-                  <textarea placeholder="Décrivez votre expérience en détail..." rows={6} maxLength={1000} onChange={(e) => setDescription(e.target.value)} className="w-full bg-white text-gray-800 px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-100 placeholder:text-gray-400 resize-none" />
-                  <div className="text-right text-gray-400 text-xs mt-1">{description.length}/1000</div>
-                </div>
-                <div>
-                  <label className="block text-gray-700 text-sm font-medium mb-2">Votre note</label>
-                  <div className="flex gap-2">
-                    {[1,2,3,4,5].map((star) => (
-                      <button key={star} type="button" onClick={() => setRating(star)} className={`text-3xl transition-colors ${star <= rating ? 'text-purple-500' : 'text-gray-300 hover:text-gray-400'}`}>★</button>
-                    ))}
-                  </div>
-                </div>
-                <div className="flex gap-3 pt-2">
-                  <button type="submit" className="flex-1 bg-purple-700 hover:bg-purple-800 text-white font-semibold py-3 rounded-xl transition-colors shadow-md">Publier mon avis</button>
-                  <button type="button" onClick={() => setPage('liste')} className="px-6 bg-white hover:bg-gray-100 text-gray-600 font-semibold py-3 rounded-xl transition-colors border border-gray-200">Annuler</button>
-                </div>
-              </form>
-            </div>
-          )}
 
-          {/* Modifier un avis */}
-          {page === 'modifier' && avisAModifier && (
-            <div className="max-w-2xl">
-              <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-1">Modifier l'avis</h1>
-              <div className="h-1 w-16 bg-cyan-400 rounded-full mb-6"></div>
-              <form onSubmit={handleModifier} className="space-y-5 bg-gray-50 rounded-2xl border border-gray-200 p-8">
-                <div>
-                  <label className="block text-gray-700 text-sm font-medium mb-1">Titre</label>
-                  <input type="text" defaultValue={avisAModifier.name} onChange={(e) => setTitre(e.target.value)} className="w-full bg-white text-gray-800 px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-100" />
-                </div>
-                <div>
-                  <label className="block text-gray-700 text-sm font-medium mb-1">Votre avis</label>
-                  <textarea defaultValue={avisAModifier.description} rows={6} maxLength={1000} onChange={(e) => setDescription(e.target.value)} className="w-full bg-white text-gray-800 px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-100 resize-none" />
-                </div>
-                <div>
-                  <label className="block text-gray-700 text-sm font-medium mb-2">Note</label>
-                  <div className="flex gap-2">
-                    {[1,2,3,4,5].map((star) => (
-                      <button key={star} type="button" onClick={() => setRating(star)} className={`text-3xl transition-colors ${star <= rating ? 'text-purple-500' : 'text-gray-300 hover:text-gray-400'}`}>★</button>
-                    ))}
-                  </div>
-                </div>
-                <div className="flex gap-3 pt-2">
-                  <button type="submit" className="flex-1 bg-purple-700 hover:bg-purple-800 text-white font-semibold py-3 rounded-xl transition-colors shadow-md">Sauvegarder</button>
-                  <button type="button" onClick={() => { setPage('liste'); setAvisAModifier(null) }} className="px-6 bg-white hover:bg-gray-100 text-gray-600 font-semibold py-3 rounded-xl transition-colors border border-gray-200">Annuler</button>
-                </div>
-              </form>
-            </div>
-          )}
+                <h3 className="mt-6 text-2xl font-black text-slate-950">
+                  Aucun avis pour le moment
+                </h3>
 
-        </div>
-      </div>
+                <p className="mx-auto mt-3 max-w-lg leading-7 text-slate-500">
+                  Soyez la première personne à partager une expérience avec la
+                  communauté.
+                </p>
+
+                {connecte && (
+                  <button
+                    type="button"
+                    onClick={ouvrirFormulaire}
+                    className="button-primary mt-7"
+                  >
+                    Publier le premier avis
+                  </button>
+                )}
+              </div>
+            ) : (
+              <div className="mt-12 grid gap-6 md:grid-cols-2 xl:grid-cols-3">
+                {avis.map((avisItem) => (
+                  <article
+                    key={avisItem.id}
+                    className="group flex min-h-72 flex-col rounded-[28px] border border-slate-200 bg-white p-7 shadow-sm transition duration-300 hover:-translate-y-1 hover:border-violet-200 hover:shadow-xl hover:shadow-slate-200/70"
+                  >
+                    <div className="flex items-start justify-between gap-4">
+                      <div className="flex items-center gap-3">
+                        <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-violet-100 text-lg font-black text-violet-700">
+                          {avisItem.name?.[0]?.toUpperCase() || "A"}
+                        </div>
+
+                        <div>
+                          <h3 className="font-black text-slate-950">
+                            {avisItem.name}
+                          </h3>
+
+                          <p className="mt-1 text-xs font-medium text-slate-400">
+                            Avis étudiant
+                          </p>
+                        </div>
+                      </div>
+
+                      <div
+                        className="flex shrink-0 gap-0.5"
+                        aria-label={`${avisItem.rating} étoiles sur 5`}
+                      >
+                        {stars.map((star) => (
+                          <span
+                            key={star}
+                            className={
+                              star <= avisItem.rating
+                                ? "text-violet-600"
+                                : "text-slate-200"
+                            }
+                          >
+                            ★
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+
+                    <p className="mt-7 flex-1 leading-7 text-slate-600">
+                      {avisItem.description}
+                    </p>
+
+                    {connecte && (
+                      <div className="mt-7 flex gap-3 border-t border-slate-100 pt-5">
+                        <button
+                          type="button"
+                          onClick={() => ouvrirModification(avisItem)}
+                          className="rounded-full bg-violet-50 px-4 py-2 text-sm font-bold text-violet-700 transition hover:bg-violet-100"
+                        >
+                          Modifier
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={() => handleSupprimer(avisItem.id)}
+                          className="rounded-full bg-red-50 px-4 py-2 text-sm font-bold text-red-600 transition hover:bg-red-100"
+                        >
+                          Supprimer
+                        </button>
+                      </div>
+                    )}
+                  </article>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
+        {page === "deposer" && (
+          <AvisForm
+            title="Partagez votre expérience."
+            subtitle="Votre avis aidera les autres étudiants à mieux comprendre votre expérience."
+            titre={titre}
+            setTitre={setTitre}
+            description={description}
+            setDescription={setDescription}
+            rating={rating}
+            setRating={setRating}
+            onSubmit={handleSubmit}
+            onCancel={fermerFormulaire}
+            submitLabel="Publier mon avis"
+            loading={envoi}
+          />
+        )}
+
+        {page === "modifier" && avisAModifier && (
+          <AvisForm
+            title="Modifiez votre avis."
+            subtitle="Mettez à jour votre titre, votre description ou votre note."
+            titre={titre}
+            setTitre={setTitre}
+            description={description}
+            setDescription={setDescription}
+            rating={rating}
+            setRating={setRating}
+            onSubmit={handleModifier}
+            onCancel={fermerFormulaire}
+            submitLabel="Enregistrer les modifications"
+            loading={envoi}
+          />
+        )}
+      </section>
     </div>
-  )
+  );
+}
+
+function AvisForm({
+  title,
+  subtitle,
+  titre,
+  setTitre,
+  description,
+  setDescription,
+  rating,
+  setRating,
+  onSubmit,
+  onCancel,
+  submitLabel,
+  loading,
+}) {
+  return (
+    <div className="mx-auto grid max-w-6xl gap-10 lg:grid-cols-[0.7fr_1.3fr]">
+      <div>
+        <p className="section-label">Votre témoignage</p>
+
+        <h1 className="mt-3 text-4xl font-black tracking-tight text-slate-950 sm:text-5xl">
+          {title}
+        </h1>
+
+        <p className="mt-5 max-w-lg text-lg leading-8 text-slate-500">
+          {subtitle}
+        </p>
+
+        <button
+          type="button"
+          onClick={onCancel}
+          className="mt-8 inline-flex items-center gap-2 text-sm font-bold text-violet-700 hover:text-violet-900"
+        >
+          <span aria-hidden="true">←</span>
+          Retour aux avis
+        </button>
+      </div>
+
+      <form
+        onSubmit={onSubmit}
+        className="rounded-[32px] border border-slate-200 bg-white p-7 shadow-xl shadow-slate-200/50 sm:p-10"
+      >
+        <div className="space-y-6">
+          <div>
+            <label htmlFor="titre" className="form-label">
+              Titre de l’avis
+            </label>
+
+            <input
+              id="titre"
+              type="text"
+              value={titre}
+              required
+              maxLength={100}
+              placeholder="Exemple : une très bonne expérience"
+              onChange={(event) => setTitre(event.target.value)}
+              className="form-input"
+            />
+          </div>
+
+          <div>
+            <div className="flex items-center justify-between">
+              <label htmlFor="description" className="form-label">
+                Votre expérience
+              </label>
+
+              <span className="text-xs font-semibold text-slate-400">
+                {description.length} / 1000
+              </span>
+            </div>
+
+            <textarea
+              id="description"
+              value={description}
+              required
+              rows={7}
+              maxLength={1000}
+              placeholder="Décrivez votre expérience en quelques phrases..."
+              onChange={(event) => setDescription(event.target.value)}
+              className="form-input min-h-48 resize-none"
+            />
+          </div>
+
+          <fieldset>
+            <legend className="form-label">
+              Votre note
+            </legend>
+
+            <div className="flex gap-2">
+              {stars.map((star) => (
+                <button
+                  key={star}
+                  type="button"
+                  onClick={() => setRating(star)}
+                  aria-label={`Attribuer ${star} étoile${star > 1 ? "s" : ""}`}
+                  className={`text-4xl transition hover:scale-110 ${
+                    star <= rating
+                      ? "text-violet-600"
+                      : "text-slate-200 hover:text-violet-300"
+                  }`}
+                >
+                  ★
+                </button>
+              ))}
+            </div>
+
+            <p className="mt-2 text-sm font-semibold text-slate-500">
+              {rating} étoile{rating > 1 ? "s" : ""} sur 5
+            </p>
+          </fieldset>
+
+          <div className="flex flex-col gap-3 pt-3 sm:flex-row">
+            <button
+              type="submit"
+              disabled={loading}
+              className="button-primary flex-1 disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              {loading ? "Enregistrement..." : submitLabel}
+            </button>
+
+            <button
+              type="button"
+              onClick={onCancel}
+              className="button-secondary"
+            >
+              Annuler
+            </button>
+          </div>
+        </div>
+      </form>
+    </div>
+  );
 }
