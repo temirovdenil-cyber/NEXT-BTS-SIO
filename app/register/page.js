@@ -29,7 +29,6 @@ export default function RegisterPage() {
   return (
     <div className="min-h-screen bg-white flex flex-col">
 
-      {/* Header */}
       <header className="flex items-center justify-between px-8 py-4 border-b border-gray-100 shadow-sm">
         <div className="flex items-center gap-2">
           <div className="w-8 h-8 bg-purple-700 rounded-full flex items-center justify-center">
@@ -39,14 +38,10 @@ export default function RegisterPage() {
         </div>
         <a href="/" className="text-purple-700 hover:text-purple-900 text-sm font-medium">← Retour à l'accueil</a>
       </header>
-
-      {/* Bande cyan */}
       <div className="bg-cyan-400 py-2 px-8 text-center text-white text-sm font-medium">
         20 formations • 100% certifiées par l'état • 17 campus • Cours en présentiel
       </div>
-
       <div className="flex flex-col md:flex-row flex-1">
-        {/* Colonne gauche - info */}
         <div className="hidden md:flex w-1/2 bg-gradient-to-b from-purple-50 to-cyan-50 flex-col items-center justify-center p-12 gap-8">
           <img src="/image-register.png" alt="register" className="max-w-sm w-full object-contain" />
           <div className="text-center">
@@ -54,8 +49,6 @@ export default function RegisterPage() {
             <p className="text-gray-500 text-sm">Plus de 10 000 étudiants nous font confiance</p>
           </div>
         </div>
-
-        {/* Formulaire droite */}
         <div className="w-full md:w-1/2 flex flex-col justify-center px-8 md:px-16 py-12">
           <h1 className="text-4xl font-bold text-gray-900 mb-1">Créer votre compte</h1>
           <p className="text-gray-500 mb-8 text-sm">Tu cherches une école du digital en France ? Découvre les formations MyDigitalSchool dans nos 17 campus</p>

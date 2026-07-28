@@ -14,14 +14,14 @@ export default function Avis() {
   useEffect(() => {
     const token = localStorage.getItem('token')
     if (token) setConnecte(true)
-    fetch('http://localhost:5000/avis')
+    fetch(`${process.env.NEXT_PUBLIC_API_URL}/avis`)
       .then(res => res.json())
       .then(data => setAvis(data.reviews || []))
       .catch(err => console.error('Erreur:', err))
   }, [])
 
   const rechargerAvis = async () => {
-    const res = await fetch('http://localhost:5000/avis')
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/avis`)
     const data = await res.json()
     setAvis(data.reviews || [])
   }
@@ -30,7 +30,7 @@ export default function Avis() {
     e.preventDefault()
     const token = localStorage.getItem('token')
     try {
-      await fetch('http://localhost:5000/add/avis', {
+      await fetch(`${process.env.NEXT_PUBLIC_API_URL}/add/avis`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
         body: JSON.stringify({ name: titre, date: new Date().toISOString(), rating, description })
@@ -46,7 +46,7 @@ export default function Avis() {
     e.preventDefault()
     const token = localStorage.getItem('token')
     try {
-      await fetch(`http://localhost:5000/autoriser/avis/${avisAModifier.id}`, {
+      await fetch(`${process.env.NEXT_PUBLIC_API_URL}/avis/${avisAModifier.id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
         body: JSON.stringify({ name: titre || avisAModifier.name, date: avisAModifier.date, rating: rating || avisAModifier.rating, description: description || avisAModifier.description })
@@ -63,7 +63,7 @@ export default function Avis() {
     if (!confirm('Supprimer cet avis ?')) return
     const token = localStorage.getItem('token')
     try {
-      await fetch(`http://localhost:5000/avis/${id}`, {
+      await fetch(`${process.env.NEXT_PUBLIC_API_URL}/avis/${id}`, {
         method: 'DELETE',
         headers: { 'Authorization': `Bearer ${token}` }
       })
