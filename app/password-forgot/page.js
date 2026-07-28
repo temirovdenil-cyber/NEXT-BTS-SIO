@@ -64,11 +64,7 @@ export default function ForgotPasswordPage() {
               choisir un nouveau mot de passe.
             </p>
 
-            <img
-              src="/image-forgot.png"
-              alt="Illustration de récupération du mot de passe"
-              className="mx-auto mt-10 max-h-80 w-full object-contain"
-            />
+           <div className="mt-10 h-24" />
           </div>
         </div>
 

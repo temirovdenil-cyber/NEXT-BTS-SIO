@@ -59,12 +59,8 @@ export default function LoginPage() {
               Connectez-vous pour publier, modifier et gérer vos expériences
               partagées avec la communauté.
             </p>
-
-            <img
-              src="/image-login.png"
-              alt="Illustration de connexion"
-              className="mx-auto mt-10 max-h-80 w-full object-contain"
-            />
+<div className="mt-10 h-24" />
+            
           </div>
         </div>
 

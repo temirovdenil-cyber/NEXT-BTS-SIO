@@ -191,12 +191,7 @@ export default function RegisterPage() {
               Partagez votre expérience et consultez les retours des membres de
               la communauté.
             </p>
-
-            <img
-              src="/image-register.png"
-              alt="Illustration d'inscription"
-              className="mx-auto mt-10 max-h-80 w-full object-contain"
-            />
+            <div className="mt-10 h-24" />
           </div>
         </div>
       </div>
